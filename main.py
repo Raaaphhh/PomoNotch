@@ -1,70 +1,75 @@
+import subprocess
 import time
 import sys
 import os
-import curses
+import cutie
+import select
 
-# print("Votre durée de travail(min) :")
-# timerInMin = int(input())
-# timerInSec = timerInMin * 60
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+RESET = "\033[0m"
 
-def menu(stdscr):
-    # Désactiver le curseur
-    curses.curs_set(0)
+def timerGo(timeFocus, timeBreak):
+    timeFocusInSec = timeFocus * 60
+    timeBreakInSec = timeBreak * 60
+    paused = False
 
-    # Liste des options
-    options = ["Option 1", "Option 2", "Option 3", "Quitter"]
-    current_selection = 0
+    while (timeFocusInSec > 0):
+        if not paused : 
+            minutes, seconds = divmod(timeFocusInSec, 60)
+            print(f"\rOnly {GREEN}{minutes}min {seconds}s{RESET} left before a {RED}{timeBreak}min{RESET} break", end="")
+            timeFocusInSec -= 1
+            time.sleep(1)
 
-    while True:
-        stdscr.clear()
+        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+            user_input = sys.stdin.read(1).strip()
+            if user_input.lower() == "p":
+                paused = not paused
+                if paused:
+                    print("\nTimer paused. Press 'p' to resume.")
+                else:
+                    print("\nTimer resumed.")
 
-        # Afficher les options
-        for i, option in enumerate(options):
-            if i == current_selection:
-                stdscr.addstr(i, 0, f"> {option}", curses.A_REVERSE)  # Option sélectionnée
-            else:
-                stdscr.addstr(i, 0, f"  {option}")
+        if(timeFocusInSec == 0):
+            # APPEL POUR AFFICHER NOTCH ici 
+            # Notification ci dessous : 
+            subprocess.run(["osascript", "-e", 'display notification "Pause !" with title "Pomodoro"'])
+            os.system('clear')
+            while(timeBreakInSec > 0):
+                minutes, seconds = divmod(timeBreakInSec, 60)
+                print(f"\rEnjoy your {timeBreak}min break! Only {minutes}min {seconds}s left.", end="")
+                timeBreakInSec -= 1
+                time.sleep(1)
 
-        stdscr.refresh()
-
-        # Récupérer l'entrée utilisateur
-        key = stdscr.getch()
-
-        if key == curses.KEY_UP and current_selection > 0:
-            current_selection -= 1
-        elif key == curses.KEY_DOWN and current_selection < len(options) - 1:
-            current_selection += 1
-        elif key == ord("\n"):  # Touche Entrée
-            if options[current_selection] == "Quitter":
-                # appeler fonction de fermeture programe
-                break
-            elif options[current_selection] == "25min work, 5min break":
-                printTimer(25, 5)
-            elif options[current_selection] == "45min work, 10min break":
-                printTimer(45, 15)
-            elif options[current_selection] == "Personnalisé":
-                print("Give a Minute of work : ")
-                timeWork = int(input())
-                print("Give a Minute of break : ")
-                timeBreak = int(input())
-                printTimer(timeWork, timeBreak)
-            stdscr.addstr(len(options) + 1, 0, f"Vous avez sélectionné: {options[current_selection]}")
-            stdscr.refresh()
-            stdscr.getch()  # Pause pour afficher le message
+    return 
 
 
-def printTimer(timerInMin, timerBreak):
-    timerInSec = timerInMin * 60
-    while(timerInSec > 0):
-        minutes = timerInSec // 60
-        seconds = timerInSec % 60
+def menu():
+    choices = [
+        "Select your Pomodoro session:",
+        "25min focus, 5min rest",
+        "45min focus, 15min rest",
+        "Custom duration",
+        "Leave PomoNotch"
+    ]
+    captions = [0]
+    choice = choices[cutie.select(choices, caption_indices=captions, selected_index=1)]
+    if(choice == choices[1]):
+        timerGo(25, 5)
+    elif(choice == choices[2]):
+        timerGo(45, 15)
+    elif(choice == choices[3]): 
+        timeFocusCustom = cutie.get_number("Enter the custom focus duration (in minutes):", min_value=1, allow_float=False)
+        timeBreakCustom = cutie.get_number("Enter the custom break duration (in minutes):", min_value=1, allow_float=False)
         os.system('clear')
-        sys.stdout.write(f"\rEncore : {minutes:02d}:{seconds:02d}")
-        sys.stdout.flush()
-        time.sleep(1)
-        timerInSec -= 1 
-    print("\rTemps écoulé !            ")
+        print(f"So every {timeFocusCustom}min you will have an {timeBreakCustom}min break")
+        timerGo(timeFocusCustom, timeBreakCustom)
+    elif(choice == choices[4]):
+        # Ajouter message de fermeture
+        return
+
     return
 
-curses.wrapper(menu)
-# printTimer(timerInSec)
+menu()
