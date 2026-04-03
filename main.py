@@ -4,12 +4,14 @@ import sys
 import os
 import cutie
 import select
+from common.func import afficahgeASCIIMenu
 
 # GLOBAL COLOR VARIABLES
 RED = "\033[31m"
 GREEN = "\033[32m"
 YELLOW = "\033[33m"
 BLUE = "\033[34m"
+WHITE = "\033[97m"
 RESET = "\033[0m"
 
 def timerGo(timeFocus, timeBreak):
@@ -40,22 +42,26 @@ def timerGo(timeFocus, timeBreak):
                     return
 
         if(timeFocusInSec == 0):
-            # APPEL POUR AFFICHER NOTCH ici 
-            # Notification ci dessous : 
-            subprocess.run(["osascript", "-e", 'display notification "Pause !" with title "PomoNotch"'])
+            # APPEL POUR AFFICHER NOTCH ici
+            subprocess.run(["swiftc", "main.swift", "-o", "notch_binary", "-framework", "Cocoa"], cwd="notch")
+            notch_proc = subprocess.Popen(["./notch_binary", str(timeBreakInSec)], cwd="notch")
+
             os.system('clear')
             while(timeBreakInSec > 0):
+                # Ajouter logique de pause
                 minutes, seconds = divmod(timeBreakInSec, 60)
-                print(f"\rEnjoy your {timeBreak}min break! Only {minutes}min {seconds}s left.", end="")
+                print(f"\rEnjoy your {timeBreak}min break! Only {GREEN}{minutes}min {seconds}s{RESET} left.", end="")
                 timeBreakInSec -= 1
                 time.sleep(1)
+            notch_proc.wait()
     
     os.system('clear')
     print("Here we go for an other tour !")
     return timerGo(timeFocus, timeBreak)
 
-
 def menu():
+    os.system('clear')
+    afficahgeASCIIMenu(BLUE, WHITE, RESET)
     choices = [
         "Select your Pomodoro session:",
         "25min focus, 5min rest",
