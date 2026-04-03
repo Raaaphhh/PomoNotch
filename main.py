@@ -5,6 +5,7 @@ import os
 import cutie
 import select
 
+# GLOBAL COLOR VARIABLES
 RED = "\033[31m"
 GREEN = "\033[32m"
 YELLOW = "\033[33m"
@@ -15,6 +16,7 @@ def timerGo(timeFocus, timeBreak):
     timeFocusInSec = timeFocus * 60
     timeBreakInSec = timeBreak * 60
     paused = False
+    exit = False
 
     while (timeFocusInSec > 0):
         if not paused : 
@@ -31,19 +33,26 @@ def timerGo(timeFocus, timeBreak):
                     print("\nTimer paused. Press 'p' to resume.")
                 else:
                     print("\nTimer resumed.")
+            elif user_input.lower() == "e":
+                exit = not exit
+                if exit:
+                    print("\nEnd of work time, Good Bye !!!!")
+                    return
 
         if(timeFocusInSec == 0):
             # APPEL POUR AFFICHER NOTCH ici 
             # Notification ci dessous : 
-            subprocess.run(["osascript", "-e", 'display notification "Pause !" with title "Pomodoro"'])
+            subprocess.run(["osascript", "-e", 'display notification "Pause !" with title "PomoNotch"'])
             os.system('clear')
             while(timeBreakInSec > 0):
                 minutes, seconds = divmod(timeBreakInSec, 60)
                 print(f"\rEnjoy your {timeBreak}min break! Only {minutes}min {seconds}s left.", end="")
                 timeBreakInSec -= 1
                 time.sleep(1)
-
-    return 
+    
+    os.system('clear')
+    print("Here we go for an other tour !")
+    return timerGo(timeFocus, timeBreak)
 
 
 def menu():
@@ -67,7 +76,8 @@ def menu():
         print(f"So every {timeFocusCustom}min you will have an {timeBreakCustom}min break")
         timerGo(timeFocusCustom, timeBreakCustom)
     elif(choice == choices[4]):
-        # Ajouter message de fermeture
+        print("\nEnd of work time, Good Bye !!!!")
+        print("")
         return
 
     return
