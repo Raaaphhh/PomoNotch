@@ -2,9 +2,10 @@ import subprocess
 import time
 import sys
 import os
+import signal
 import cutie
 import select
-from common.func import afficahgeASCIIMenu
+from common.func import draw_menu, on_resize
 
 # GLOBAL COLOR VARIABLES
 RED = "\033[31m"
@@ -21,9 +22,14 @@ def timerGo(timeFocus, timeBreak):
     exit = False
 
     while (timeFocusInSec > 0):
-        if not paused : 
+        if not paused :
             minutes, seconds = divmod(timeFocusInSec, 60)
-            print(f"\rOnly {GREEN}{minutes}min {seconds}s{RESET} left before a {RED}{timeBreak}min{RESET} break", end="")
+            width = os.get_terminal_size().columns
+            if width >= 40:
+                msg = f"\rOnly {GREEN}{minutes}min {seconds}s{RESET} left before a {RED}{timeBreak}min{RESET} break"
+            else:
+                msg = f"\r{GREEN}{minutes}:{seconds:02d}{RESET}"
+            print(msg, end="", flush=True)
             timeFocusInSec -= 1
             time.sleep(1)
 
@@ -42,11 +48,12 @@ def timerGo(timeFocus, timeBreak):
                     return
 
         if(timeFocusInSec == 0):
-            # APPEL POUR AFFICHER NOTCH ici
-            subprocess.run(["swiftc", "main.swift", "-o", "notch_binary", "-framework", "Cocoa"], cwd="notch")
+            # Essayer de faire une notif sonore
+            # subprocess.run(["afplay", "/System/Library/Sounds/Glass.aiff"])
+            # APPEL AFFICHAGE NOTCH : 
+            subprocess.run(["swiftc", "main.swift", "RoundedView.swift", "NotchAnimation.swift", "-o", "notch_binary", "-framework", "Cocoa"], cwd="notch")
             notch_proc = subprocess.Popen(["./notch_binary", str(timeBreakInSec)], cwd="notch")
 
-            os.system('clear')
             while(timeBreakInSec > 0):
                 # Ajouter logique de pause
                 minutes, seconds = divmod(timeBreakInSec, 60)
@@ -55,13 +62,13 @@ def timerGo(timeFocus, timeBreak):
                 time.sleep(1)
             notch_proc.wait()
     
-    os.system('clear')
-    print("Here we go for an other tour !")
+    # Rajouter une animation de supression du texte de la line de facons linéaire
     return timerGo(timeFocus, timeBreak)
 
 def menu():
-    os.system('clear')
-    afficahgeASCIIMenu(BLUE, WHITE, RESET)
+    signal.signal(signal.SIGWINCH, on_resize)
+    draw_menu()
+    signal.signal(signal.SIGWINCH, signal.SIG_IGN)
     choices = [
         "Select your Pomodoro session:",
         "25min focus, 5min rest",
@@ -71,21 +78,23 @@ def menu():
     ]
     captions = [0]
     choice = choices[cutie.select(choices, caption_indices=captions, selected_index=1)]
+    signal.signal(signal.SIGWINCH, on_resize)
     if(choice == choices[1]):
+        print("\033[5A\033[J", end="", flush=True)
         timerGo(25, 5)
     elif(choice == choices[2]):
+        print("\033[5A\033[J", end="", flush=True)
         timerGo(45, 15)
     elif(choice == choices[3]): 
         timeFocusCustom = cutie.get_number("Enter the custom focus duration (in minutes):", min_value=1, allow_float=False)
         timeBreakCustom = cutie.get_number("Enter the custom break duration (in minutes):", min_value=1, allow_float=False)
-        os.system('clear')
-        print(f"So every {timeFocusCustom}min you will have an {timeBreakCustom}min break")
+        print("\033[7A\033[J", end="", flush=True)
+        print(f"Every {timeFocusCustom}min you will have an {timeBreakCustom}min break")
         timerGo(timeFocusCustom, timeBreakCustom)
     elif(choice == choices[4]):
         print("\nEnd of work time, Good Bye !!!!")
         print("")
         return
-
     return
 
 menu()
