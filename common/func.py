@@ -1,9 +1,5 @@
-import signal
-import time
 from rich.console import Console
 from rich.text import Text
-
-
 
 console = Console()
 
@@ -41,15 +37,5 @@ PomoNotch v1.0.0
   Welcome !
   Stay PRODUCTIVE"""))
 
-def on_resize(signum, frame):
-    draw_menu()
-
-#Pour securiser la phase de test du menu
 if __name__ == "__main__":
-    signal.signal(signal.SIGWINCH, on_resize)
     draw_menu()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
