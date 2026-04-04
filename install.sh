@@ -25,8 +25,13 @@ python3 "$HOME/.pomonotch/main.py" "$@"
 EOF
 chmod +x "$BIN_DIR/pomonotch"
 
-SHELL_RC="$HOME/.zshrc"
-[ -n "$BASH_VERSION" ] && SHELL_RC="$HOME/.bashrc"
+if [ -f "$HOME/.zshrc" ]; then
+    SHELL_RC="$HOME/.zshrc"
+elif [ -f "$HOME/.bashrc" ]; then
+    SHELL_RC="$HOME/.bashrc"
+else
+    SHELL_RC="$HOME/.zshrc"
+fi
 
 if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' "$SHELL_RC" 2>/dev/null; then
     echo '' >> "$SHELL_RC"
