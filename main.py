@@ -1,10 +1,11 @@
 import subprocess
 import time
-import sys
 import os
+import sys
 import cutie
-import select
 from common.func import draw_menu
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # GLOBAL COLOR VARIABLES
 RED = "\033[31m"
@@ -32,9 +33,9 @@ def timerGo(timeFocus, timeBreak):
             time.sleep(1)
 
         if(timeFocusInSec == 0):
-            sound_proc = subprocess.Popen(["afplay", "sounds/sound_start_break.mp3"])
-            subprocess.run(["swiftc", "main.swift", "RoundedView.swift", "NotchAnimation.swift", "-o", "notch_binary", "-framework", "Cocoa"], cwd="notch")
-            notch_proc = subprocess.Popen(["./notch_binary", str(timeBreakInSec)], cwd="notch")
+            notch_dir = os.path.join(BASE_DIR, "notch")
+            sound_proc = subprocess.Popen(["afplay", os.path.join(BASE_DIR, "sounds/sound_start_break.mp3")])
+            notch_proc = subprocess.Popen(["./notch_binary", str(timeBreakInSec)], cwd=notch_dir)
 
             while(timeBreakInSec > 0):
                 minutes, seconds = divmod(timeBreakInSec, 60)
@@ -42,7 +43,7 @@ def timerGo(timeFocus, timeBreak):
                 timeBreakInSec -= 1
                 time.sleep(1)
             
-            sound_eb = subprocess.Popen(["afplay", "sounds/sound_end_break.mp3"])
+            sound_eb = subprocess.Popen(["afplay", os.path.join(BASE_DIR, "sounds/sound_end_break.mp3")])
             notch_proc.wait()
             sound_eb.wait()
     
