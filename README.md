@@ -51,9 +51,17 @@ The notch closes automatically when the break ends, and a second sound signals i
 
 ---
 
-## Uninstall
+## Update
 
-Open a new terminal tab, then run:
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/Raaaphhh/PomoNotch/main/update.sh)
+```
+
+Pulls the latest changes, updates dependencies if needed, and shows a summary of what changed.
+
+---
+
+## Uninstall
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/Raaaphhh/PomoNotch/main/uninstall.sh | bash

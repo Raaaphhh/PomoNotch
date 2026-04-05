@@ -10,9 +10,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # GLOBAL COLOR VARIABLES
 RED = "\033[31m"
 GREEN = "\033[32m"
-YELLOW = "\033[33m"
-BLUE = "\033[34m"
-WHITE = "\033[97m"
 RESET = "\033[0m"
 
 def timerGo(timeFocus, timeBreak):
